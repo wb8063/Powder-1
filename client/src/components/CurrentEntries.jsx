@@ -16,6 +16,7 @@ const CurrentEntries = () => {
   }, [])
 
   const [newEmail, setNewEmail] = useState('')
+  const [ newPhone, setNewPhone ] = useState("");
   const [passcode, setPasscode] = useState('')
 
   function getObjectByValue(objVal) {
@@ -61,7 +62,23 @@ const CurrentEntries = () => {
       updateInputs[i].value = ''
     }
   }
-
+  const updatePhone = (phone) => {
+    axios.put(`${process.env.REACT_APP_HOST}/api/update/phone`, { old: phone, new: newPhone}).then((response) => {
+      let objToChange = getObjectByValue(phone)
+      const index = entryList.indexOf(objToChange)  // deletes ONE instance in the state var
+      objToChange.phone_number = newPhone
+      if (index > -1) {
+        let entryListCopy = [...entryList]
+        entryListCopy[index] = objToChange
+        setEntryList(entryListCopy)
+      }
+    }) //close .then()
+    setNewPhone('') // clear all update email input fields
+    let updateInputs = document.getElementsByClassName('updateInput');
+    for (let i = 0; i < updateInputs.length; i++) {
+      updateInputs[i].value = ''
+    }
+  }
   const refPass = useRef(null);
 
   function handleEditList(e) {
@@ -129,43 +146,62 @@ const CurrentEntries = () => {
   }
 
   return (
-
     <div className="currentEntries posRel">
-      <h2>Current Entries</h2>
+    <h2>Current Entries</h2>
+    <br />
+    <div className='userData'>
+      {entryList.map((val, k) => {
+        return (<div key={k}>
+          <div className="unit"> 
+            <h5>{val.last_name}, {val.first_name} <span className="emailListed">{val.email_address}</span></h5>
+            
+            <br />
+             
+          </div>
+          <div className="editControls editGui">
 
-      <div className='userData'>
-        {entryList.map((val, k) => {
-          return (<div key={k}>
-            <div>{val.last_name}, {val.first_name} <span className="emailListed">{val.email_address}</span> </div>
+            <span className="phoneListed">{val.phone_number}</span>
+            <input type="text" className="updateInput" placeholder={val.phone_number} onChange={(e) => setNewPhone(e.target.value)} />
+            <span className="emailListed">{val.email_address}</span>
+            <br />
+            <input type="email" className="updateInput" placeholder={val.email_address}
+              onChange={(e) => setNewEmail(e.target.value)} />
+            <br />
+            <br />
+            <button className='delete' onClick={() => {
 
-            <div className="editControls editGui">
-              <button className='delete' onClick={() => {
+              deleteEntry(val.email_address)
+            }}>delete</button>
+            <button className='update' onClick={() => {
 
-                deleteEntry(val.email_address)
-              }}>delete</button>
-              <button className='update' onClick={() => {
-                if (newEmail.length > 0) {
-                  updateEmail(val.email_address);
-                }
-              }}>update</button>
-              <input type="email" className="updateInput" placeholder={val.email_address}
-                onChange={(e) => setNewEmail(e.target.value)} />
-            </div>
-          </div>)
+              if (newEmail.length > 0) {
+                updateEmail(val.email_address);
+              }
 
-        })}
-        <div className="editField editGui">
-          <button id="editButton" onClick={handleEditList}>Edit List</button>
-          <button id="doneButton" onClick={handleFinishedEditing}>Finished Editing</button>
-          <input id="editPasscodeInput" ref={refPass} type="password"
-            placeholder='Enter passcode' onChange={checkPasscode}
-            onBlur={(e) => abortPasscodeAttempt(e.target.value)} />
-        </div>
-        <button id="submitEmailsButton" className='submitBtn' onClick={() => alert('TODO: Send It!')}>Email Vouchers</button>
+              if (newPhone.length > 0) {
+                updatePhone(val.phone_number);
+              }
+            }}>update</button>
 
+          </div>
+        </div>)
+
+      })}
+      <div className="editField editGui">
+        <button id="editButton" onClick={handleEditList}>Edit List</button>
+        <button id="doneButton" onClick={handleFinishedEditing}>Finished Editing</button>
+        <input id="editPasscodeInput" ref={refPass} type="password"
+          placeholder='Enter passcode' onChange={checkPasscode}
+          onBlur={(e) => abortPasscodeAttempt(e.target.value)} />
       </div>
+      <button id="submitEmailsButton" className='submitBtn' onClick={() => alert('TODO: Send It!')}>Email Vouchers</button>
+      <br />
+      <br />
+      
     </div>
-  )
+  </div>
+)
+    
 }
 
 export default CurrentEntries;
